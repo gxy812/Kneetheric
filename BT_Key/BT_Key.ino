@@ -1,3 +1,4 @@
+// Original Source https://gist.github.com/manuelbl/66f059effc8a7be148adb1f104666467
 /* 
  * Sample program for ESP32 acting as a Bluetooth keyboard
  * 
@@ -6,23 +7,17 @@
  * Licensed under MIT License
  * https://opensource.org/licenses/MIT
  */
-
 //
 // This program lets an ESP32 act as a keyboard connected via Bluetooth.
 // When a button attached to the ESP32 is pressed, it will generate the key strokes for a message.
-//
-// For the setup, a momentary button should be connected to pin 2 and to ground.
-// Pin 2 will be configured as an input with pull-up.
-//
 // In order to receive the message, add the ESP32 as a Bluetooth keyboard of your computer
 // or mobile phone:
-//
 // 1. Go to your computers/phones settings
 // 2. Ensure Bluetooth is turned on
 // 3. Scan for Bluetooth devices
-// 4. Connect to the device called "ESP32 Keyboard"
+// 4. Connect to the device called "Kneetheric Device"
 // 5. Open an empty document in a text editor
-// 6. Press the button attached to the ESP32
+// 6. Press the boot button
 
 #define US_KEYBOARD 1
 
@@ -36,7 +31,7 @@
 // Change the below values if desired
 #define BUTTON_PIN 0
 #define MESSAGE "w"
-#define DEVICE_NAME "ESP32 Keyboard"
+#define DEVICE_NAME "Kneetheric Device"
 
 
 // Forward declarations
@@ -242,13 +237,13 @@ void typeText(const char* text) {
         input->setValue((uint8_t*)&report, sizeof(report));
         input->notify();
 
-        delay(1);
+        delay(5);
 
         // release all keys between two characters; otherwise two identical
         // consecutive characters are treated as just one key press
         input->setValue((uint8_t*)&NO_KEY_PRESSED, sizeof(NO_KEY_PRESSED));
         input->notify();
 
-        delay(1);
+        delay(5);
     }
 }
