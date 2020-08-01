@@ -12,7 +12,7 @@
 //Pins
 #define TRIG 14
 #define ECHO 27
-#define BUZZ 15
+#define BUZZ 26
 //Bluetooth
 #define US_KEYBOARD 1
 // Change the below values if desired
@@ -23,7 +23,7 @@
 //distance of sensor from inner knee
 #define SENSOR_DIS 10
 //angle of sensor off from thigh
-#define SENSOR_ANG radians(5)
+#define SENSOR_ANG radians(1)
 #define MAX_STORE 2
 
 #include <Arduino.h>
@@ -36,26 +36,32 @@
 void bluetoothTask(void *);
 void typeText(const char *text);
 void onError();
+void onGood();
 
 //globals
 bool isBleConnected = false;
+//timing variables
 long loop_start = 0;
 long last_angle = 0;
 long last_exec = 0;
-float current_v = 0;
-float current_angle = 0;
-bool check_av = false;
-bool extending = false;
+//variables for state of device
+float current_v;
+float current_angle;
+bool check_av;
+bool extending;
 
 class AngleStore
 {
     float angle[MAX_STORE] = {};
+    //store old velocity for averaging, reduce oscillations
+    float oldV = 0;
     int i = 0;
 
 public:
     float getAngle()
     {
         float dist;
+        float theta;
         float opp;
         // Clears TRIG
         digitalWrite(TRIG, LOW);
@@ -68,43 +74,60 @@ public:
 
         // Reads ECHO, returns the sound wave travel time in microseconds, then multiplies to get distance in cm
         dist = pulseIn(ECHO, HIGH) * 0.034 / 2;
+        Serial.print("Distance = ");
+        Serial.println(dist);
         /*
-        ||     _________
-        ||    / ________ -> SENSOR_DIS
-        ||   / /angle) ^ -> SENSOR_ANG
-        ||  / /
-        || / /->dist
+        ||  _________
+        || | ________ -> SENSOR_DIS
+        || | |O    ^ -> SENSOR_ANG
+        || | |  / -> dist
+        || | |/
         */
         // Get opposite side
-        opp = sqrt(SENSOR_DIS * SENSOR_DIS + dist * dist + 2 * SENSOR_DIS * dist * cos(SENSOR_ANG));
+        // cosine rule -> a = sqrt(b^2+c^2-2bc*cosA)
+        opp = sqrt(SENSOR_DIS * SENSOR_DIS + dist * dist - 2 * SENSOR_DIS * dist * cos(SENSOR_ANG));
         // Angle
-        // use sin rule
-        dist = asin(dist * sin(SENSOR_ANG) / opp);
-        dist = degrees(dist);
+        // use sine rule -> sinA / a = sinB / b
+        theta = asin(dist * sin(SENSOR_ANG) / opp);
+        theta = degrees(theta);
+        // correct for quadrant (arcsin does not return values above 90 degrees)
+        if (dist > SENSOR_DIS / cos(SENSOR_ANG))
+        {
+            theta = 180 - theta;
+        }
         // store angle for velocity calc
-        angle[i] = dist;
+        angle[i] = theta;
         ++i;
         if (i >= MAX_STORE)
         {
             i = 0;
         }
-        return dist;
+        Serial.print("Angle = ");
+        Serial.println(theta);
+        return theta;
     }
     float getAngularVelocity()
     {
         float v = angle[i];
+        //compare current angle to previous angle taken 100 ms ago
         if ((i - 1) < 0)
         {
+            //get rad per sec
+            //100 ms = 0.1 s
             v = (v - angle[MAX_STORE - 1]) / 0.1;
         }
         else
         {
-            //get rad per sec
             v = (v - angle[i - 1]) / 0.1;
         }
+        //average with old velocity
+        v = (v + oldV) / 2;
         //absolute velocity
         v = abs(v);
         //convert to degree
+        Serial.print("Angular velocity = ");
+        Serial.println(degrees(v));
+        oldV = v;
         return degrees(v);
     }
 };
@@ -118,9 +141,15 @@ void setup()
     pinMode(TRIG, OUTPUT);
     pinMode(ECHO, INPUT_PULLDOWN);
     //channel, freq, bit-resolution
-    ledcSetup(0, 2000, 8);
+    ledcSetup(0, 4000, 8);
     //pin, channel
     ledcAttachPin(BUZZ, 0);
+
+    //initialise globals
+    check_av = false;
+    extending = false;
+    current_v = 0;
+    current_angle = 0;
 
     // start Bluetooth task
     xTaskCreate(bluetoothTask, "bluetooth", 20000, NULL, 5, NULL);
@@ -134,31 +163,30 @@ void loop()
     {
         current_angle = ang.getAngle();
         last_angle = millis();
+        if (check_av)
+        { // read angular velocity after first loop
+            current_v = ang.getAngularVelocity();
+        }
+        else
+            check_av = true;
     }
-    if (check_av)
-    { // read angular velocity after first loop
-        current_v = ang.getAngularVelocity();
-    }
-    else
-        check_av = true;
-    // check for correct angle change and velocity every 50 ms
-    if (isBleConnected & (loop_start - last_exec > 50))
+    // check for correct angle change and velocity every 200 ms
+    if (isBleConnected && (loop_start - last_exec > 200))
     {
         ledcWriteTone(0, 0);
-        if (current_v < 5)
+        //less than maximum desired rotation speed
+        if (current_v < 500)
         {
             //leg is extended and supposed to be extended
             if (current_angle >= 170 && current_angle <= 180 && extending)
             {
-                Serial.println(GOOD);
-                typeText(GOOD);
+                onGood();
                 extending = false;
             }
             //leg is bent and supposed to be bent
             else if (current_angle >= 85 && current_angle <= 90 && !extending)
             {
-                Serial.println(GOOD);
-                typeText(GOOD);
+                onGood();
                 extending = true;
             }
         }
@@ -177,6 +205,13 @@ void onError()
     typeText(ERR);
     //channel, freq
     ledcWriteTone(0, 4000);
+}
+
+//function for successful movement
+void onGood()
+{
+    Serial.println(GOOD);
+    typeText(GOOD);
 }
 
 // Message (report) sent when a key is pressed or released
