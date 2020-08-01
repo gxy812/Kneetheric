@@ -23,7 +23,7 @@
 //distance of sensor from inner knee
 #define SENSOR_DIS 10
 //angle of sensor off from thigh
-#define SENSOR_ANG radians(1)
+#define SENSOR_ANG radians(10)
 #define MAX_STORE 2
 
 #include <Arduino.h>
@@ -89,6 +89,7 @@ public:
         // Angle
         // use sine rule -> sinA / a = sinB / b
         theta = asin(dist * sin(SENSOR_ANG) / opp);
+        // convert to degrees
         theta = degrees(theta);
         // correct for quadrant (arcsin does not return values above 90 degrees)
         if (dist > SENSOR_DIS / cos(SENSOR_ANG))
@@ -112,23 +113,21 @@ public:
         //compare current angle to previous angle taken 100 ms ago
         if ((i - 1) < 0)
         {
-            //get rad per sec
+            //get degree per sec
             //100 ms = 0.1 s
             v = (v - angle[MAX_STORE - 1]) / 0.1;
         }
         else
-        {
             v = (v - angle[i - 1]) / 0.1;
-        }
         //average with old velocity
         v = (v + oldV) / 2;
         //absolute velocity
         v = abs(v);
-        //convert to degree
         Serial.print("Angular velocity = ");
-        Serial.println(degrees(v));
+        Serial.println(v);
+        //store velocity for averaging
         oldV = v;
-        return degrees(v);
+        return v;
     }
 };
 AngleStore ang;
@@ -175,7 +174,7 @@ void loop()
     {
         ledcWriteTone(0, 0);
         //less than maximum desired rotation speed
-        if (current_v < 500)
+        if (current_v < 100)
         {
             //leg is extended and supposed to be extended
             if (current_angle >= 170 && current_angle <= 180 && extending)
