@@ -20,9 +20,9 @@
 #define GOOD "w"
 #define ERR "s"
 #define DEVICE_NAME "Kneetheric Device"
-//distance of sensor from inner knee
-#define SENSOR_DIS 10
-//angle of sensor off from thigh
+//distance of sensor from inner knee (cm)
+#define SENSOR_DIS 1
+//angle of sensor off from thigh (degrees)
 #define SENSOR_ANG radians(16)
 #define MAX_STORE 2
 
@@ -202,8 +202,8 @@ void onError()
 {
     Serial.println(ERR);
     typeText(ERR);
-    //channel, freq
-    ledcWrite(0, 64);
+    //channel, volume(0-256)
+    ledcWrite(0, 16);
 }
 
 //function for successful movement
