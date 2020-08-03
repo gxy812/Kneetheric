@@ -10,9 +10,9 @@
 //Act as bluetooth keyboard, use ultrasonic sensor and buzzer
 
 //Pins
-#define TRIG 14
-#define ECHO 27
-#define BUZZ 26
+#define TRIG 27
+#define ECHO 14
+#define BUZZ 12
 //Bluetooth
 #define US_KEYBOARD 1
 // Change the below values if desired
@@ -23,7 +23,7 @@
 //distance of sensor from inner knee
 #define SENSOR_DIS 10
 //angle of sensor off from thigh
-#define SENSOR_ANG radians(10)
+#define SENSOR_ANG radians(16)
 #define MAX_STORE 2
 
 #include <Arduino.h>
@@ -172,12 +172,12 @@ void loop()
     // check for correct angle change and velocity every 200 ms
     if (isBleConnected && (loop_start - last_exec > 200))
     {
-        ledcWriteTone(0, 0);
+        ledcWrite(0, 0);
         //less than maximum desired rotation speed
         if (current_v < 100)
         {
             //leg is extended and supposed to be extended
-            if (current_angle >= 170 && current_angle <= 180 && extending)
+            if (current_angle >= 150 && current_angle <= 180 && extending)
             {
                 onGood();
                 extending = false;
@@ -203,7 +203,7 @@ void onError()
     Serial.println(ERR);
     typeText(ERR);
     //channel, freq
-    ledcWriteTone(0, 4000);
+    ledcWrite(0, 64);
 }
 
 //function for successful movement
