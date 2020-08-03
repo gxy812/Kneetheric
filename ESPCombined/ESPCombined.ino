@@ -10,9 +10,9 @@
 //Act as bluetooth keyboard, use ultrasonic sensor and buzzer
 
 //Pins
-#define TRIG 27
+#define TRIG 12
 #define ECHO 14
-#define BUZZ 12
+#define BUZZ 19
 //Bluetooth
 #define US_KEYBOARD 1
 // Change the below values if desired
