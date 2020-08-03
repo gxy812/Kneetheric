@@ -21,7 +21,7 @@
 #define ERR "s"
 #define DEVICE_NAME "Kneetheric Device"
 //distance of sensor from inner knee (cm)
-#define SENSOR_DIS 1
+#define SENSOR_DIS 6
 //angle of sensor off from thigh (degrees)
 #define SENSOR_ANG radians(16)
 #define MAX_STORE 2
@@ -174,7 +174,7 @@ void loop()
     {
         ledcWrite(0, 0);
         //less than maximum desired rotation speed
-        if (current_v < 100)
+        if (current_v < 200)
         {
             //leg is extended and supposed to be extended
             if (current_angle >= 150 && current_angle <= 180 && extending)
