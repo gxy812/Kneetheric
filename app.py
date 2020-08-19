@@ -36,7 +36,7 @@ class Application(tk.Frame):
         self.message = tk.Label(self, textvar = self.pointer)
         self.message.pack(side="top")
         #create alert
-        self.alert = tk.Label(self, text = 'Alert', foreground = '#FFFFFF')
+        self.alert = tk.Label(self, text = 'Alert', foreground = 'SystemButtonFace')
         self.alert.pack(side='top')
 
         self.quit = tk.Button(self, text="QUIT", fg="red",
