@@ -46,7 +46,7 @@ class Application(tk.Frame):
     def onKeyDown(self, event):
         if event.Key is self.tgtchar:
             self.iSession += 1
-            self.iTotal += self.iSession
+            self.iTotal += 1
             if self.alert['background'] is not 'SystemButtonFace':
                 self.alert['background'] = 'SystemButtonFace'
             self.updateDisplay()
