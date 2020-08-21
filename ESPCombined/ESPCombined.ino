@@ -10,9 +10,9 @@
 //Act as bluetooth keyboard, use ultrasonic sensor and buzzer
 
 //Pins
-#define TRIG 12
-#define ECHO 14
-#define BUZZ 19
+#define TRIG 2
+#define ECHO 15
+#define BUZZ 13
 //Bluetooth
 #define US_KEYBOARD 1
 // Change the below values if desired
@@ -174,7 +174,7 @@ void loop()
     {
         ledcWrite(0, 0);
         //less than maximum desired rotation speed
-        if (current_v < 200)
+        if (current_v < 400)
         {
             //leg is extended and supposed to be extended
             if (current_angle >= 150 && current_angle <= 180 && extending)
