@@ -1,6 +1,6 @@
 # Kneetheric
 ### Key Programs:
-app.py : Desktop Application
+app.py : Desktop Application  
 ESPCombined : ESP32 program
 ### Reference Links:
 1) ExoRehab: https://www.chinamoneynetwork.com/2018/10/10/exosystems-to-conduct-trial-run-of-new-ict-rehabilitation-solution-in-vietnam
